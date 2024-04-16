@@ -19,14 +19,14 @@ class LLMDataModule(pl.LightningDataModule):
         pass
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=8, pin_memory=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4, pin_memory=True)
 
     def val_dataloader(self):
         
-        return DataLoader(self.validate_dataset, batch_size=self.batch_size, num_workers=8, shuffle=False, drop_last=True, pin_memory=True)
+        return DataLoader(self.validate_dataset, batch_size=self.batch_size, num_workers=4, shuffle=False, drop_last=True, pin_memory=True)
        
     def test_dataloader(self):
        
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=8, shuffle=False, pin_memory=True)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=4, shuffle=False, pin_memory=True)
         
         

@@ -20,19 +20,21 @@ from data.LLMDataModule import LLMDataModule
 from model.PeftRegressionModel import PeftRegressionModel
 
 
-BATCH_SIZE = 32
-MAX_EPOCHS = 10
-LEARNING_RATE = 5e-4
+BATCH_SIZE = 64
+MAX_EPOCHS = 50
+LEARNING_RATE = 2e-3
 
 # Import the tokenizer and the model
-pretrained_model_name = "InstaDeepAI/nucleotide-transformer-2.5b-multi-species"
+# pretrained_model_name = "InstaDeepAI/nucleotide-transformer-2.5b-multi-species"
+pretrained_model_name = "InstaDeepAI/nucleotide-transformer-v2-500m-multi-species"
 # TODO: FIXIT
 # pretrained_model_name = "zhihan1996/DNABERT-2-117M"
-tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name)
+tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name, trust_remote_code=True)
 model_O = AutoModelForSequenceClassification.from_pretrained(
         pretrained_model_name, 
         num_labels=1, 
-        hidden_dropout_prob=0.4
+        hidden_dropout_prob=0.4,
+        trust_remote_code=True
     )
 
 # IA3 config
@@ -51,12 +53,12 @@ lora_config = LoraConfig(
     r=16,
     bias="none",
     # target_modules=["query", "value", "dense"],
-    target_modules=["query", "dense"],
+    target_modules=["query", "value", "dense"],
     inference_mode=False,
 )
 model_O = peft.get_peft_model(model_O, lora_config)
 
-pl.seed_everything(1)
+pl.seed_everything(42)
 
 wandb.login()
 
@@ -66,11 +68,11 @@ wandb_logger = WandbLogger(
     )
 
 early_stop_callback = EarlyStopping(
-    monitor="val_loss", 
+    monitor="val_pcc", 
     min_delta=0.00,
-    patience=5, 
+    patience=10, 
     verbose=False,
-    mode="min"
+    mode="max"
 )
 
 trainer = pl.Trainer(
@@ -81,7 +83,7 @@ trainer = pl.Trainer(
     deterministic=True,
     fast_dev_run=False,
     callbacks=[early_stop_callback],
-    precision=16
+    precision="16-mixed"
     )
 
 data_module = LLMDataModule(

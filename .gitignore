@@ -161,3 +161,4 @@ cython_debug/
 
 wandb/
 561s-final-project/
+log/
